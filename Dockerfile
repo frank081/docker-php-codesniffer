@@ -12,23 +12,10 @@ RUN apk update \
     git \
     openssh
 
-# Setup php.ini file
-# Set timeszone for test that use date
-RUN echo "date.timezone = America/New_York" >> /usr/local/etc/php/php.ini
-
 # Install xdebug
 RUN apk add --no-cache $PHPIZE_DEPS \
 	&& pecl install xdebug-2.5.5 \
 	&& docker-php-ext-enable xdebug
-
-# Install phpunit
-RUN mkdir -p /root/src \
-    && cd /root/src \
-    && wget https://phar.phpunit.de/phpunit-${PHPUNIT_VERSION}.phar \
-    && chmod +x phpunit-${PHPUNIT_VERSION}.phar \
-    && mv phpunit-${PHPUNIT_VERSION}.phar /usr/local/bin/phpunit \
-    && rm -rf /root/src \
-    && phpunit --version
 
 # Install PHP Code Sniffer
 RUN mkdir -p /root/src \
@@ -46,24 +33,3 @@ RUN mkdir -p /root/src \
     && rm -rf /root/src \
     && phpcs --config-set installed_paths /usr/phpcs_standards/PHPCompatibility \
     && phpcs -i
-
-# Install PHP Code Sniffer for Drupal standard
-RUN mkdir -p /root/src \
-    && cd /root/src \
-    && git clone https://github.com/squizlabs/PHP_CodeSniffer.git \
-    && cd PHP_CodeSniffer \
-    && git checkout tags/2.9.1 \
-    && cd scripts \
-    && echo "phar.readonly = 0" >> /usr/local/etc/php/php.ini \
-    && php build-phar.php \
-    && chmod +x phpcs.phar \
-    && chmod +x phpcbf.phar \
-    && mv phpcs.phar /usr/local/bin/phpcs-2.9.1 \
-    && mv phpcbf.phar /usr/local/bin/phpcbf-2.9.1 \
-    && phpcs-2.9.1 --version \
-    && phpcbf-2.9.1 --version \
-    && mkdir -p /usr/phpcs_standards \
-    && git clone --branch 8.x-2.x https://git.drupal.org/project/coder.git /usr/phpcs_standards/coder/ \
-    && rm -rf /root/src \
-    && phpcs-2.9.1 --config-set installed_paths /usr/phpcs_standards/coder/coder_sniffer/ \
-    && phpcs-2.9.1 -i
